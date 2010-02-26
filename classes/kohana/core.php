@@ -29,6 +29,12 @@ class Kohana_Core {
 	// Format of cache files: header, cache name, and data
 	const FILE_CACHE = ":header \n\n// :name\n\n:data\n";
 
+	// Common environment type constants for consistency and convenience
+	const PRODUCTION  = 'production';
+	const STAGING     = 'staging';
+	const TESTING     = 'testing';
+	const DEVELOPMENT = 'development';
+
 	/**
 	 * @var  array  PHP error code => human readable name
 	 */
@@ -46,7 +52,7 @@ class Kohana_Core {
 	/**
 	 * @var  string  current environment name
 	 */
-	public static $environment = 'development';
+	public static $environment = Kohana::DEVELOPMENT;
 
 	/**
 	 * @var  boolean  command line environment?
