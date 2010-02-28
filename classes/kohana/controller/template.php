@@ -45,7 +45,7 @@ abstract class Kohana_Controller_Template extends Controller {
 	{
 		if ($this->auto_render === TRUE)
 		{
-			$this->request->response = $this->template;
+			$this->request->response = $this->template->render();
 		}
 
 		return parent::after();
