@@ -297,7 +297,7 @@ class Kohana_Core {
 		Kohana::$log = Log::instance();
 
 		// Load the config
-		Kohana::$config = Kohana_Config::instance();
+		Kohana::$config = Config::instance();
 
 		if (isset($benchmark))
 		{
@@ -684,7 +684,7 @@ class Kohana_Core {
 	 * Creates a new configuration object for the requested group.
 	 *
 	 * @param   string   group name
-	 * @return  Kohana_Config
+	 * @return  Config
 	 */
 	public static function config($group)
 	{

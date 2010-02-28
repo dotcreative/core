@@ -22,7 +22,7 @@ class Kohana_Config {
 		if (self::$_instance === NULL)
 		{
 			// Create a new instance
-			self::$_instance = new self;
+			self::$_instance = new Config;
 		}
 
 		return self::$_instance;
