@@ -167,6 +167,25 @@ abstract class Kohana_Session {
 	}
 
 	/**
+	 * Get a variable once then delete it from the session array.
+	 *
+	 * @param   string   variable name
+	 * @param   mixed    default value to return
+	 * @return  mixed
+	 */
+	public function get_once($key, $default = NULL)
+	{
+		// Store the value from the session array
+		$result = $this->get($key, $default);
+
+		// Remove the variable from the session array
+		$this->delete($key);
+
+		// Return the stored value
+		return $result;
+	}
+
+	/**
 	 * Loads the session data.
 	 *
 	 * @param   string   session id
