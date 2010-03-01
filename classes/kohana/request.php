@@ -510,6 +510,11 @@ class Kohana_Request {
 	public $action;
 
 	/**
+	 * @var  int  cache lifetime
+	 */
+	public $cache;
+
+	/**
 	 * @var  string  the URI of the request
 	 */
 	public $uri;
@@ -558,8 +563,14 @@ class Kohana_Request {
 					$this->action = $params['action'];
 				}
 
+				if (isset($params['cache']))
+				{
+					// Store the cache lifetime
+					$this->cache = $params['cache'];
+				}
+
 				// These are accessible as public vars and can be overloaded
-				unset($params['controller'], $params['action'], $params['directory']);
+				unset($params['controller'], $params['action'], $params['directory'], $params['cache']);
 
 				// Params cannot be changed once matched
 				$this->_params = $params;
@@ -583,6 +594,19 @@ class Kohana_Request {
 	public function __toString()
 	{
 		return (string) $this->response;
+	}
+
+	/**
+	 * Enables the request to be cached for a specified amount of time.
+	 *
+	 * @param 	integer number of seconds to cache or null for default
+	 * @return 	$this
+	 */
+	public function cached($lifetime = NULL)
+	{
+		$this->cache = $lifetime;
+
+		return $this;
 	}
 
 	/**
@@ -827,6 +851,24 @@ class Kohana_Request {
 	 */
 	public function execute()
 	{
+		if ( ! empty($this->cache))
+		{
+			// Set the cache key based on the request instance name and $_GET query
+			$cache_key = 'Request::instance("'.$this->uri.'?'.http_build_query($_GET).'")';
+
+			if ($result = Kohana::cache($cache_key, NULL, $this->cache))
+			{
+				// Return a cached result
+				return $result;
+			}
+		}
+
+		if (Kohana::$profiling === TRUE)
+		{
+			// Start benchmarking
+			$benchmark = Profiler::start('Requests', $this->uri);
+		}
+
 		// Create the class prefix
 		$prefix = 'controller_';
 
@@ -834,12 +876,6 @@ class Kohana_Request {
 		{
 			// Add the directory name to the class prefix
 			$prefix .= str_replace(array('\\', '/'), '_', trim($this->directory, '/')).'_';
-		}
-
-		if (Kohana::$profiling === TRUE)
-		{
-			// Start benchmarking
-			$benchmark = Profiler::start('Requests', $this->uri);
 		}
 
 		try
@@ -895,6 +931,12 @@ class Kohana_Request {
 		{
 			// Stop the benchmark
 			Profiler::stop($benchmark);
+		}
+
+		if (isset($cache_key))
+		{
+			// Cache the request object
+			Kohana::cache($cache_key, $this);
 		}
 
 		return $this;
