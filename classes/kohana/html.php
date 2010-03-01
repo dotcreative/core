@@ -266,6 +266,19 @@ class Kohana_HTML {
 	}
 
 	/**
+	 * Creates a html element.
+	 *
+	 * @param   string   element name
+	 * @param   array    element attributes
+	 * @param   string   element content
+	 * @return  string
+	 */
+	public static function element($name, array $attributes = NULL, $content = FALSE)
+	{
+		return '<'.$name.HTML::attributes($attributes).((isset($content)) ? '>'.$content.'</'.$name.'>' : ' />');
+	}
+
+	/**
 	 * Compiles an array of HTML attributes into an attribute string.
 	 *
 	 * @param   array   attribute list
