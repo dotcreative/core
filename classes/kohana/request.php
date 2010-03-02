@@ -862,7 +862,7 @@ class Kohana_Request {
 		if ( ! empty($this->cache))
 		{
 			// Set the cache key based on the request instance name, $_GET query and request type
-			$cache_key = 'Request::instance("'.$this->uri.'") | GET("'.http_build_query($_GET).'") | TYPE("'.$this->type.'")';
+			$cache_key = 'Request::instance("'.$this->uri.'") | GET("'.http_build_query($_GET).'") | TYPE("'.$this->type.'")';
 
 			if ($result = Kohana::cache($cache_key, NULL, $this->cache))
 			{
