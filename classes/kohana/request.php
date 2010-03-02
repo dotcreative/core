@@ -9,6 +9,11 @@
  */
 class Kohana_Request {
 
+	// Common request type constants for consistency and convenience
+	const EXTERNAL = 'external';
+	const INTERNAL = 'internal';
+	const AJAX     = 'ajax';
+
 	// HTTP status codes and messages
 	public static $messages = array(
 		// Informational 1xx
@@ -90,11 +95,6 @@ class Kohana_Request {
 	public static $client_ip = '0.0.0.0';
 
 	/**
-	 * @var  boolean  AJAX-generated request
-	 */
-	public static $is_ajax = FALSE;
-
-	/**
 	 * Main request singleton instance. If no URI is provided, the URI will
 	 * be automatically detected using PATH_INFO, REQUEST_URI, or PHP_SELF.
 	 *
@@ -156,7 +156,7 @@ class Kohana_Request {
 				if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) AND strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
 				{
 					// This request is an AJAX request
-					Request::$is_ajax = TRUE;
+					$type = Request::AJAX;
 				}
 
 				if (isset($_SERVER['HTTP_REFERER']))
@@ -256,6 +256,9 @@ class Kohana_Request {
 
 			// Add the Content-Type header
 			$instance->headers['Content-Type'] = 'text/html; charset='.Kohana::$charset;
+
+			// Set the request type
+			$instance->type = (isset($type)) ? $type : Request::EXTERNAL;
 		}
 
 		return $instance;
@@ -518,6 +521,11 @@ class Kohana_Request {
 	 * @var  string  the URI of the request
 	 */
 	public $uri;
+
+	/**
+	 * @var  string  the request type
+	 */
+	public $type = Request::INTERNAL;
 
 	// Parameters extracted from the route
 	protected $_params;
@@ -853,8 +861,8 @@ class Kohana_Request {
 	{
 		if ( ! empty($this->cache))
 		{
-			// Set the cache key based on the request instance name and $_GET query
-			$cache_key = 'Request::instance("'.$this->uri.'?'.http_build_query($_GET).'")';
+			// Set the cache key based on the request instance name, $_GET query and request type
+			$cache_key = 'Request::instance("'.$this->uri.'") | GET('.http_build_query($_GET).'") | TYPE('.$this->type.')';
 
 			if ($result = Kohana::cache($cache_key, NULL, $this->cache))
 			{
