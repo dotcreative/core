@@ -867,7 +867,7 @@ class Kohana_Request {
 			if ($result = Kohana::cache($cache_key, NULL, $this->cache))
 			{
 				// Return a cached result
-				return $result;
+				return $result->check_http_cache();
 			}
 		}
 
@@ -935,23 +935,25 @@ class Kohana_Request {
 			throw $e;
 		}
 
+		// Sets the cache headers of the request
+		$this->set_http_cache();
+
 		if (isset($benchmark))
 		{
 			// Stop the benchmark
 			Profiler::stop($benchmark);
 		}
 
-		if (isset($cache_key))
+		if (isset($cache_key) AND ($this->status === 200))
 		{
 			// Cache the request object
 			Kohana::cache($cache_key, $this);
 		}
 
-		return $this;
+		return $this->check_http_cache();
 	}
 
 	/**
-	 * Generate ETag
 	 * Generates an ETag from the response ready to be returned
 	 *
 	 * @throws Kohana_Request_Exception
@@ -969,37 +971,84 @@ class Kohana_Request {
 	}
 
 	/**
-	 * Check Cache
-	 * Checks the browser cache to see the response needs to be returned
+	 * Sets the cache headers of the request
 	 *
-	 * @param String Resource ETag
 	 * @throws Kohana_Request_Exception
 	 * @chainable
 	 */
-	public function check_cache($etag = null)
+	public function set_http_cache()
 	{
-		if (empty($etag))
+		// The HTTP cache headers are usefull only for external requests
+		if ( ! $this->is_internal)
 		{
-			$etag = $this->generate_etag();
+			$now = time();
+
+			if ( ! empty($this->cache))
+			{
+				$this->headers += array(
+					'Expires' 			=> gmdate('D, d M Y H:i:s T', $now + $this->cache),
+					'Cache-Control' 	=> "max-age={$this->cache}, must-revalidate",
+					'Last-Modified' 	=> gmdate('D, d M Y H:i:s T', $now),
+				);
+			}
+
+			$this->headers += array(
+				'ETag' 				=> $this->generate_etag(),
+				'Cache-Control' 	=> 'must-revalidate',
+			);
 		}
 
-		// Set the ETag header
-		$this->headers['ETag'] = $etag;
+		return $this;
+	}
 
-		// Add the Cache-Control header if it is not already set
-		// This allows etags to be used with Max-Age, etc
-		$this->headers += array(
-			'Cache-Control' => 'must-revalidate',
-		);
-
-		if (isset($_SERVER['HTTP_IF_NONE_MATCH']) AND $_SERVER['HTTP_IF_NONE_MATCH'] === $etag)
+	/**
+	 * Checks the browser cache to see the response needs to be returned
+	 *
+	 * @throws Kohana_Request_Exception
+	 * @chainable
+	 */
+	public function check_http_cache()
+	{
+		// The HTTP cache headers are usefull only for external requests
+		if ( ! $this->is_internal)
 		{
-			// No need to send data again
-			$this->status = 304;
-			$this->send_headers();
+			// Checks Last-Modified
+			if ( ! empty($_SERVER['HTTP_IF_MODIFIED_SINCE']))
+			{
+				// Some versions of IE6 append "; length=####"
+				if (($strpos = strpos($_SERVER['HTTP_IF_MODIFIED_SINCE'], ';')) !== FALSE)
+				{
+					$mod_time = substr($_SERVER['HTTP_IF_MODIFIED_SINCE'], 0, $strpos);
+				}
+				else
+				{
+					$mod_time = $_SERVER['HTTP_IF_MODIFIED_SINCE'];
+				}
 
-			// Stop execution
-			exit;
+				// Checks if Last-Modified header matches the HTTP request
+				$cached = $last_modified_match = (isset($this->headers['Last-Modified']) AND ($this->headers['Last-Modified'] === $mod_time));
+			}
+
+			// Checks ETag
+			if ( ! empty($_SERVER['HTTP_IF_NONE_MATCH']))
+			{
+				// Checks if ETag header matches the HTTP request
+				$etag_match = (isset($this->headers['ETag']) AND ($_SERVER['HTTP_IF_NONE_MATCH'] === $this->headers['ETag']));
+
+				// If both Last-Modified and ETags are set, they both have to match HTTP request
+				$cached = (isset($last_modified_match)) ? ($last_modified_match AND $etag_match) : $etag_match;
+			}
+
+			//If this request is already cached send 304 Not Modified headers
+			if ( ! empty($cached))
+			{
+				// No need to send data again
+				$this->status = 304;
+				$this->send_headers();
+
+				// Stop execution
+				exit;
+			}
 		}
 
 		return $this;
