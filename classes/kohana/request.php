@@ -676,8 +676,11 @@ class Kohana_Request {
 	{
 		if ( ! headers_sent())
 		{
+			// Get the request protocol, set default to HTTP/1.1
+			$protocol = (isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.1';
+
 			// HTTP status line
-			header('HTTP/1.1 '.$this->status.' '.Request::$messages[$this->status]);
+			header($protocol.' '.$this->status.' '.Request::$messages[$this->status]);
 
 			foreach ($this->headers as $name => $value)
 			{
@@ -986,15 +989,15 @@ class Kohana_Request {
 			if ( ! empty($this->cache))
 			{
 				$this->headers += array(
-					'Expires' 			=> gmdate('D, d M Y H:i:s T', $now + $this->cache),
-					'Cache-Control' 	=> "max-age={$this->cache}, must-revalidate",
-					'Last-Modified' 	=> gmdate('D, d M Y H:i:s T', $now),
+					'Expires'       => gmdate('D, d M Y H:i:s T', $now + $this->cache),
+					'Cache-Control' => "max-age={$this->cache}, must-revalidate",
+					'Last-Modified' => gmdate('D, d M Y H:i:s T', $now),
 				);
 			}
 
 			$this->headers += array(
-				'ETag' 				=> $this->generate_etag(),
-				'Cache-Control' 	=> 'must-revalidate',
+				'ETag'          => $this->generate_etag(),
+				'Cache-Control' => 'must-revalidate',
 			);
 		}
 
