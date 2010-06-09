@@ -23,8 +23,6 @@ Class Kohana_ConfigTest extends Kohana_Unittest_TestCase
 	function testReaders()
 	{
 		$config = Kohana_Config::instance();
-		$config->detach(new Kohana_Config_File);
-		$config->attach(new Kohana_Config_File);
 		$config->attach(new Kohana_Config_File, FALSE);
 		$config->detach(new Kohana_Config_File);
 
@@ -35,7 +33,7 @@ Class Kohana_ConfigTest extends Kohana_Unittest_TestCase
 		$this->assertEquals(0, count($foo));
 
 		$config->detach(new Kohana_Config_File);
-		
+
 		try
 		{
 			$foo = $config->load('foo');
@@ -45,5 +43,14 @@ Class Kohana_ConfigTest extends Kohana_Unittest_TestCase
 		{
 			$this->assertEquals('No configuration readers attached', $e->getMessage());
 		}
+
+		$config->attach(new Kohana_Config_File);
+	}
+
+	function testCopy()
+	{
+		$config = Kohana_Config::instance();
+
+		$config->copy('encrypt');
 	}
 }
