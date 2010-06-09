@@ -58,8 +58,9 @@ class Kohana_CoreTest extends PHPUnit_Framework_TestCase
 		return array(
 			// $folder, $class, $result
 			array('classes', 'foo', FALSE),
-			array('classes', 'date', TRUE),
-			array('views', 'kohana/error', TRUE)
+			array('classes', 'date', SYSPATH.'classes/date.php'),
+			array('views', 'kohana/error', SYSPATH.'views/kohana/error.php'),
+			array('config', 'credit_cards', array(SYSPATH.'config/credit_cards.php', SYSPATH.'config/credit_cards.php'))// Why is this set twice?
 		);
 	}
 
@@ -73,6 +74,39 @@ class Kohana_CoreTest extends PHPUnit_Framework_TestCase
 	 */
 	function testFindFile($folder, $class, $result)
 	{
-		$this->assertSame($result, (bool) Kohana::find_file($folder, $class));
+		$this->assertSame($result, Kohana::find_file($folder, $class));
+	}
+
+	/**
+	 * Provides test data for testListFiles()
+	 * 
+	 * @return array
+	 */
+	function providerListFiles()
+	{
+		return array(
+			// $folder, $result
+			array('i18n', array(
+				'i18n/en.php' => SYSPATH.'i18n/en.php',
+				'i18n/es.php' => SYSPATH.'i18n/es.php',
+				'i18n/fr.php' => SYSPATH.'i18n/fr.php',
+			)),
+			array('messages', array(
+				'messages/validate.php' => SYSPATH.'messages/validate.php'
+			)),
+		);
+	}
+
+	/**
+	 * Tests Kohana::list_files()
+	 *
+	 * @test
+	 * @dataProvider providerListFiles
+	 * @param boolean $folder Input for Kohana::list_files
+	 * @param boolean $result Output for Kohana::list_files
+	 */
+	function testListFiles($folder, $result)
+	{
+		$this->assertSame($result, Kohana::list_files($folder));
 	}
 }
