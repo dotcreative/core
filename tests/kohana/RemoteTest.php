@@ -36,7 +36,7 @@ class Kohana_RemoteTest extends PHPUnit_Framework_TestCase
 	 * @param boolean $input  Input for File::mime
 	 * @param boolean $expected Output for File::mime
 	 */
-	function testUncountable($input, $expected)
+	function testGet($input, $expected)
 	{
 		#$this->assertSame($expected, Remote::get($input));
 	}
