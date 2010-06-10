@@ -50,9 +50,9 @@ class Kohana_RemoteTest extends PHPUnit_Framework_TestCase
 	{
 		return array(
 			// $value, $result
-			array('http://www.kohanaframework.org/', 200),
-			array('http://www.kohanaframework.org', 200),
-			array('http://www.kohanaframework.org/foobar', 404),
+			array('http://kohanaframework.org/', 200),
+			array('http://kohanaframework.org', 200),
+			array('http://kohanaframework.org/foobar', 500),
 		);
 	}
 
